@@ -194,7 +194,7 @@ the deployed iFlow. Everything else is fixed in the iFlow design.
 | Where | Parameter | Externalized as | Default |
 |-------|-----------|-----------------|---------|
 | HTTPS sender | Address | `connectionAddress` | `/archive/2/smb` |
-| HTTPS sender | User role | `httpsUR` | `Oauth2.Send` (must match service key 1, see 4.1) |
+| HTTPS sender | User role | `httpsUR` | e.g. `ESBMessaging.Send` (must match service key 1, see 4.1) |
 | HTTPS sender | CSRF protection | `csrf` | off |
 | Content modifier "Set RepositoryId" | Default repository id (exchange property `RepositoryId`) | `RepositoryId` | `CMISFileGateway` |
 | Integration flow | Allowed headers | – | `objectId\|repositoryId\|Content-Type\|Content-Length\|FileName` |
