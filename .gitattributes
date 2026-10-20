@@ -1,0 +1,2 @@
+# Keep files byte-identical to the SAP Integration Suite export (MANIFEST.MF needs CRLF)
+* -text
