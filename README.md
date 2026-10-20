@@ -17,7 +17,7 @@ plain file server via **SMB or SFTP**.
 
 SAP Integration Suite can archive the payloads of B2B messages (EDI interchanges, ...), but
 it only supports a **CMIS** repository (e.g. SAP Document Management Service) as target.
-Many customers simply want the documents on a file server.
+If a **CMIS** repository is not available, this project could be an alternative, as it stores the B2B-payload as a simple file on a server via SFTP or SMB adapter.
 
 This repository closes that gap:
 
