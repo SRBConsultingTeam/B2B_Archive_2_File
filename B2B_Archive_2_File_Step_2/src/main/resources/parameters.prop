@@ -1,0 +1,8 @@
+#
+#Mon Oct 19 11:57:21 UTC 2026
+sftpAddress=<sftp-host>\:22
+sftpAuthentication=<credential-alias>
+sftpDir=/<target-folder>/${property.ArchiveDirectory}
+sftpFilename=${property.ArchiveFileName}
+sftpProxy=none
+sftpTS=0

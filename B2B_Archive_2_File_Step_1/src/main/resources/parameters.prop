@@ -1,0 +1,6 @@
+#
+#Tue Oct 20 09:26:05 UTC 2026
+RepositoryId=CMISFileGateway
+connectionAddress=/archive/2/smb
+csrf=0
+httpsUR=Oauth2.Send
