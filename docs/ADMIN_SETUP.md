@@ -1,19 +1,44 @@
 # B2B Archiving (CMIS File Gateway) – Admin Setup Guide
 
-As of 2026-10-19
+As of 2026-10-21
 
 ## Overview
 
 TPM can only archive to a CMIS repository. The CMIS File Gateway, two iFlows in this package, acts as that repository and writes the payloads to a file server instead; admins complete Steps 1–6 below.
 
 ```
-                                            ┌──────────────────── CMIS File Gateway ────────────────────┐
-TPM archiving job ──CMIS, HTTPS + OAuth2──► iFlow 1: CMIS endpoint ──ProcessDirect──► iFlow 2: file writer ──SFTP or SMB──► File server
-(agreement with      CloudIntegration_      B2B_Archive_2_File_Step_1                 B2B_Archive_2_File_Step_2               (end user's setup)
- archiving enabled)  B2BArchive             Data Store, 30 days                       unzip, build path + file name
+TPM archiving job
+(agreement with archiving enabled)
+      │
+      │ CMIS, HTTPS + OAuth2
+      │ destination CloudIntegration_B2BArchive
+      ▼
+┌──────────────── CMIS File Gateway ────────────────┐
+│ iFlow 1: CMIS endpoint                            │
+│   B2B_Archive_2_File_Step_1                       │
+│   Data Store, 30 days                             │
+│     │                                             │
+│     │ ProcessDirect                               │
+│     ▼                                             │
+│ iFlow 2: file writer                              │
+│   B2B_Archive_2_File_Step_2                       │
+│   unzip, build path + file name                   │
+└───────────────────────────────────────────────────┘
+      │
+      │ SFTP or SMB
+      ▼
+File server (end user's setup)
 ```
 
 iFlow 1 answers every CMIS call itself and forwards only document uploads to iFlow 2, which writes the `.edi` file to the server.
+
+This guide holds all setup steps. The design of the two iFlows is described in the repository's `README.md`.
+
+Menu names and field labels follow the generic SAP documentation and may differ slightly in your tenant release. Cross-check with:
+
+- [Archiving B2B messages from SAP Integration Suite in a CMIS repository (SAP community blog)](https://community.sap.com/t5/technology-blog-posts-by-sap/archiving-b2b-messages-from-sap-integration-suite-in-cmis-repository/ba-p/14308874)
+- [Archiving Payload Data (SAP Help)](https://help.sap.com/docs/integration-suite/isuite-trading-partner-management/archiving-payload-data)
+- [B2B Scenarios API – Archiving KPIs](https://api.sap.com/api/B2BScenarios/resource/get_B2BArchivingKeyPerformanceIndicators)
 
 ## Prerequisites
 
@@ -30,7 +55,7 @@ You need two OAuth clients. Both clients are service keys of **SAP Process Integ
 
 | Key | Plan | Used by | Why it is needed |
 | --- | --- | --- | --- |
-| 1a | `integration-flow` | destination `CloudIntegration_B2BArchive` (Step 3) | The archiving job calls iFlow 1 as a technical user. The HTTPS sender only accepts OAuth tokens that carry role `ESBMessaging.send`; the key supplies client id, secret and token URL for that. |
+| 1a | `integration-flow` | destination `CloudIntegration_B2BArchive` (Step 3) | The archiving job calls iFlow 1 as a technical user. The HTTPS sender only accepts OAuth tokens that carry the role set in the iFlow's parameter `httpsUR`; the key supplies client id, secret and token URL for that. |
 | 1b | `api` | the admin, once, for the activation call (Step 4) | The activation endpoint belongs to the tenant's management API, not to an iFlow, so it needs an API client. |
 
 No SAP Document Management Service instance (`api-sdm-di`) and no repository onboarding are needed: the CMIS File Gateway is the repository.
@@ -39,10 +64,10 @@ No SAP Document Management Service instance (`api-sdm-di`) and no repository onb
 
 1. Subaccount → **Services → Instances and Subscriptions → Create**.
 2. Service **SAP Process Integration Runtime**, plan `integration-flow`.
-3. Parameters: grant type `Client Credentials`, role `ESBMessaging.send` (the BTP standard user role for calling iFlows).
+3. Parameters: grant type `Client Credentials` and the role that iFlow 1 expects, i.e. the value of its externalized parameter `httpsUR` (delivered as `Oauth2.Send`, see the note below).
 4. Create a **service key** on the instance and note `clientid`, `clientsecret` and `tokenurl`. Store them in a password safe – they go into the destination in Step 3.
 
-**Production:** `ESBMessaging.send` is the standard user role and lets every client with that role call any iFlow on the tenant. In production, use a specific role instead (e.g. `Oauth2.Send`) for both the service instance and the iFlow. The iFlow's role is the externalized parameter `httpsUR` of `B2B_Archive_2_File_Step_1` (set under Configure); it must match the role in service key 1a.
+**User role:** the role in service key 1a and the externalized parameter `httpsUR` of `B2B_Archive_2_File_Step_1` (set under Configure) must match. `ESBMessaging.send` is the BTP standard user role for calling iFlows and works for a quick test, but it lets every client with that role call any iFlow on the tenant. In production, use a specific role instead, e.g. the delivered `Oauth2.Send`, for both the service instance and the iFlow.
 
 **1b. API client for the activation call (BTP cockpit)**
 
@@ -53,7 +78,7 @@ No SAP Document Management Service instance (`api-sdm-di`) and no repository onb
 
 Deploy Step 2 first, then Step 1, because iFlow 1 hands uploads to iFlow 2 via ProcessDirect.
 
-1. Import the package (or the two artifacts) into **Design → Integrations and APIs**.
+1. Import the package (or the two artifacts) into **Design → Integrations and APIs**. From the Git repository: zip the content of each iFlow folder (with `META-INF/` at the top level) and add it to an integration package as an integration flow, or upload it with a tool like FlashPipe.
 2. Configure the receiver channel of `B2B_Archive_2_File_Step_2` for the end user's file server: use the **SFTP** or the **SMB** adapter, depending on their environment, and create the security material that adapter needs (e.g. User Credentials, known hosts). Keep the directory `…/${property.ArchiveDirectory}` and file name `${property.ArchiveFileName}`, with overwrite and directory creation enabled. Address, credential name, directory and file name are externalized parameters (`sftpAddress`, `sftpAuthentication`, `sftpDir`, `sftpFilename`): set them under Configure. To use SMB instead, swap the adapter in the iFlow.
 3. Deploy `B2B_Archive_2_File_Step_2`, then `B2B_Archive_2_File_Step_1`. Leave the ProcessDirect address `/archive/2/smb` identical in both.
 4. In **Monitor → Manage Integration Content**, copy the endpoint of `B2B_Archive_2_File_Step_1`. It looks like `https://<tenant>.it-cpi<xxx>-rt.cfapps.<region>.hana.ondemand.com/http/archive/2/smb`.
@@ -124,9 +149,39 @@ Setup is done when a processed B2B message shows archiving status "archived" and
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Archiving fails right away, no iFlow 1 runs | destination name, URL or token URL wrong, or archiving not activated | check `CloudIntegration_B2BArchive` with Check Connection; repeat Step 4 |
-| HTTP 401/403 in iFlow 1 | service key lacks role `ESBMessaging.send` | recreate the instance with role `ESBMessaging.send` |
+| HTTP 401/403 in iFlow 1 | role of service key 1a differs from `httpsUR` of iFlow 1 | give the instance the role set in `httpsUR`, or set `httpsUR` to the role of the key |
 | iFlow 1 runs, iFlow 2 never starts | iFlow 2 not deployed or ProcessDirect address differs | deploy iFlow 2, align `/archive/2/smb` |
 | iFlow 2 fails in the receiver channel | connection, credentials or security material of the SFTP/SMB adapter | fix the adapter configuration; test it with Connectivity Test |
 | Download from the archive returns 404 | by design: the CMIS File Gateway stores no content | read the file from the file server |
 
 Known limit: only the CMIS Browser binding is supported, so generic CMIS clients must use it (not AtomPub).
+
+## Reference – externalized parameters
+
+The installation-specific values are externalized: maintain them under **Configure** of the deployed iFlow. Everything else is fixed in the iFlow design.
+
+**`B2B_Archive_2_File_Step_1`**
+
+| Where | Parameter | Externalized as | Default |
+| --- | --- | --- | --- |
+| HTTPS sender | Address | `connectionAddress` | `/archive/2/smb` |
+| HTTPS sender | User role | `httpsUR` | `Oauth2.Send` (must match service key 1a) |
+| HTTPS sender | CSRF protection | `csrf` | off |
+| Content modifier "Set RepositoryId" | Default repository id (exchange property `RepositoryId`) | `RepositoryId` | `CMISFileGateway` |
+| Integration flow | Allowed headers | – | `objectId\|repositoryId\|Content-Type\|Content-Length\|FileName` |
+| Write to DS | Visibility / retention | – | `local` / 30 days |
+| ProcessDirect receiver | Address | – | `/archive/2/smb` |
+
+**`B2B_Archive_2_File_Step_2`**
+
+| Where | Parameter | Externalized as | Default |
+| --- | --- | --- | --- |
+| File receiver | Address (host:port) | `sftpAddress` | end-user specific |
+| File receiver | Credential name | `sftpAuthentication` | end-user specific |
+| File receiver | Target directory | `sftpDir` | `<target folder>/${property.ArchiveDirectory}` |
+| File receiver | File name | `sftpFilename` | `${property.ArchiveFileName}` |
+| File receiver | Proxy type | `sftpProxy` | `none` |
+| File receiver | File exists / auto create | – | `Override` / yes |
+| ProcessDirect sender | Address | – | `/archive/2/smb` |
+
+The parameter names start with `sftp` because the delivered receiver channel is SFTP.
