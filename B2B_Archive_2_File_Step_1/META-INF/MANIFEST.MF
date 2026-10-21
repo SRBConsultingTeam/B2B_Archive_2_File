@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: B2B Archive 2 File Step 1
 Bundle-SymbolicName: B2B_Archive_2_File_Step_1
-Bundle-Version: 1.0.9
+Bundle-Version: 1.0.10
 SAP-BundleType: IntegrationFlow
 SAP-NodeType: IFLMAP
 SAP-RuntimeProfile: iflmap

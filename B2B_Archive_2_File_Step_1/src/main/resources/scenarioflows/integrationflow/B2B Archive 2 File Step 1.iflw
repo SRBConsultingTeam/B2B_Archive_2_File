@@ -1374,7 +1374,7 @@
         <bpmn2:sequenceFlow id="SequenceFlow_50" sourceRef="CallActivity_49" targetRef="EndEvent_2"/>
         <bpmn2:sequenceFlow id="SequenceFlow_104" sourceRef="CallActivity_102" targetRef="CallActivity_31"/>
         <bpmn2:sequenceFlow id="SequenceFlow_70" sourceRef="CallActivity_68" targetRef="CallActivity_12"/>
-        <bpmn2:sequenceFlow id="SequenceFlow_126" sourceRef="CallActivity_124" targetRef="CallActivity_31"/>
+        <bpmn2:sequenceFlow id="SequenceFlow_126" sourceRef="CallActivity_124" targetRef="CallActivity_12"/>
     </bpmn2:process>
     <bpmn2:process id="Process_71" name="Read all entries">
         <bpmn2:extensionElements>
@@ -2088,9 +2088,10 @@
                 <di:waypoint x="592.1502075195312" xsi:type="dc:Point" y="-36.0"/>
                 <di:waypoint x="883.1502086578428" xsi:type="dc:Point" y="-36.0"/>
             </bpmndi:BPMNEdge>
-            <bpmndi:BPMNEdge bpmnElement="SequenceFlow_126" id="BPMNEdge_SequenceFlow_126" sourceElement="BPMNShape_CallActivity_124" targetElement="BPMNShape_CallActivity_31">
+            <bpmndi:BPMNEdge bpmnElement="SequenceFlow_126" id="BPMNEdge_SequenceFlow_126" sourceElement="BPMNShape_CallActivity_124" targetElement="BPMNShape_CallActivity_12">
                 <di:waypoint x="983.1502086578428" xsi:type="dc:Point" y="-36.0"/>
-                <di:waypoint x="1203.1502086578428" xsi:type="dc:Point" y="-36.0"/>
+                <di:waypoint x="1413.1502086578428" xsi:type="dc:Point" y="-36.0"/>
+                <di:waypoint x="1413.1502086578428" xsi:type="dc:Point" y="95.0"/>
             </bpmndi:BPMNEdge>
         </bpmndi:BPMNPlane>
     </bpmndi:BPMNDiagram>
