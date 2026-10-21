@@ -17,16 +17,16 @@ Many customers simply want the documents on a file server.
 
 This repository closes that gap:
 
-```
- B2B Scenarios (agreement with archiving)
-        │  CMIS Browser binding (HTTPS, OAuth2)   destination CloudIntegration_B2BArchive
-        ▼
- ┌───────────────────────────────┐  ProcessDirect ┌──────────────────────────────┐  SMB or SFTP
- │ iFlow 1:                      │ ─────────────► │ iFlow 2:                     │ ───────► file server
- │  B2B_Archive_2_File_Step_1    │                │  B2B_Archive_2_File_Step_2   │
- │  CMIS File Gateway endpoint   │                │  extract + write file        │
- └───────────────────────────────┘                └──────────────────────────────┘
-```
+![B2B Archiving to a File Server: the Trading Partner Management archiving job uses the destination CloudIntegration_B2BArchive to call iFlow 1 (CMIS File Gateway); iFlow 1 keeps metadata in a Data Store and hands createDocument via ProcessDirect to iFlow 2, which writes the file to the file server via SFTP or SMB](docs/img/b2b-archiving-architecture.svg)
+
+1. The archiving job of Trading Partner Management (B2B Scenarios, agreement with archiving) uses the
+   destination `CloudIntegration_B2BArchive`, which holds the connection data: the URL of iFlow 1 and the
+   OAuth2 client.
+2. With it, the job calls iFlow 1 with the CMIS Browser binding (HTTPS, OAuth2).
+3. iFlow 1 answers the CMIS dialog itself and keeps the repository metadata (folders, documents, types)
+   in a Data Store.
+4. Only `createDocument` is handed over synchronously via ProcessDirect to iFlow 2.
+5. iFlow 2 unpacks the document and writes it to the file server via SFTP or SMB.
 
 - The archiving job believes it talks to a CMIS repository.
 - iFlow 1 answers the CMIS requests (repository info, types, folders, documents, children, ...)
