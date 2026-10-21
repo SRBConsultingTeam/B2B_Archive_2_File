@@ -1334,7 +1334,7 @@
                     <value>ctype::FlowstepVariant/cname::GatewayRoute/version::1.0.0</value>
                 </ifl:property>
             </bpmn2:extensionElements>
-            <bpmn2:conditionExpression id="FormalExpression_SequenceFlow_125_1792488206246" xsi:type="bpmn2:tFormalExpression">${header.CamelHttpQuery} = null or ${header.CamelHttpQuery} = ''</bpmn2:conditionExpression>
+            <bpmn2:conditionExpression id="FormalExpression_SequenceFlow_125_1792488206246" xsi:type="bpmn2:tFormalExpression">${property.wipeDataStore} = 'true'</bpmn2:conditionExpression>
         </bpmn2:sequenceFlow>
         <bpmn2:sequenceFlow id="SequenceFlow_66" name="No objectId" sourceRef="ExclusiveGateway_65" targetRef="CallActivity_12">
             <bpmn2:extensionElements>

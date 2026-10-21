@@ -42,6 +42,10 @@ def Message classifyRequest(Message message) {
     message.setProperty('createFolder', isCreateFolder(req) ? 'true' : 'false')
     message.setProperty('createType', isCreateType(req) ? 'true' : 'false')
     message.setProperty('cmis_binding', req.binding)
+    // Route "1. call" of the iFlow clears the whole Data Store. Only a GET without query string (the archiving
+    // job's first call of a run) may trigger it - never a POST such as createDocument without query string.
+    boolean wipe = 'GET'.equalsIgnoreCase(asString(headers.get('CamelHttpMethod'))) && isBlank(asString(headers.get('CamelHttpQuery')))
+    message.setProperty('wipeDataStore', wipe ? 'true' : 'false')
 
     // CMIS Browser-binding clients (e.g. OpenCMIS Workbench) routinely send the "objectId" query
     // parameter TWICE in one request (once from a cached base/collection link, once for the actual

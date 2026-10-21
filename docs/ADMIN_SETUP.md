@@ -83,7 +83,7 @@ Deploy Step 2 first, then Step 1, because iFlow 1 hands uploads to iFlow 2 via P
 3. Deploy `B2B_Archive_2_File_Step_2`, then `B2B_Archive_2_File_Step_1`. Leave the ProcessDirect address `/archive/2/smb` identical in both.
 4. In **Monitor → Manage Integration Content**, copy the endpoint of `B2B_Archive_2_File_Step_1`. It looks like `https://<tenant>.it-cpi<xxx>-rt.cfapps.<region>.hana.ondemand.com/http/archive/2/smb`.
 
-Files land as `<partner>/OUT/<messageType>_<ICN>.edi` for inbound and `<partner>/IN/<messageType>_<ICN>.edi` for outbound interchanges. iFlow 1 keeps folder and document metadata in a Data Store for 30 days; the content itself exists only on the file server.
+Files land as `<partner>/OUT/<messageType>_<ICN>.edi` for inbound and `<partner>/IN/<messageType>_<ICN>.edi` for outbound interchanges. iFlow 1 keeps folder and document metadata in a Data Store for at most 30 days; the content itself exists only on the file server. Every GET request without a query string (e.g. the first call of an archiving run) clears this Data Store, so each run starts with an empty repository. This is intended.
 
 ## Step 3 – BTP destination
 
@@ -170,6 +170,7 @@ The installation-specific values are externalized: maintain them under **Configu
 | Content modifier "Set RepositoryId" | Default repository id (exchange property `RepositoryId`) | `RepositoryId` | `CMISFileGateway` |
 | Integration flow | Allowed headers | – | `objectId\|repositoryId\|Content-Type\|Content-Length\|FileName` |
 | Write to DS | Visibility / retention | – | `local` / 30 days |
+| Delete DS | Clears the whole Data Store | – | on every GET without query string |
 | ProcessDirect receiver | Address | – | `/archive/2/smb` |
 
 **`B2B_Archive_2_File_Step_2`**

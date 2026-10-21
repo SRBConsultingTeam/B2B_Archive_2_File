@@ -64,6 +64,8 @@ server only. Content download (`cmisselector=content`) is therefore not supporte
 - **Data Store ("Write to DS", "Get objectId", "Read all entries"):** persists folders,
   documents and custom types so later lookups and listings work.
 - **Routing** (by exchange properties set in the script):
+  - `GET` without query string (e.g. the first call of an archiving run) → the whole Data Store
+    is cleared ("Delete DS"), then the script answers,
   - `createDocument` → handed over to iFlow 2,
   - `createFolder` / `createType` → Data Store only,
   - everything else → answered directly by the script.
@@ -112,7 +114,8 @@ iFlow parameters.
 - Content download is not supported (404); content exists only on the file server.
 - Documents are not checked for duplicate names; a second `createType` of an existing type is
   answered with 201 (real DMS: 409).
-- Repository state lives in a Data Store with 30 days retention – older entries expire.
+- Repository state lives in a Data Store with 30 days retention – older entries expire. Every
+  `GET` without query string clears it (intended: each archiving run starts with an empty repository).
 
 
 ## 7. License
