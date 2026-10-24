@@ -32,4 +32,12 @@
     <constraint/>
     <description/>
     <additionalMetadata/>
+  </parameter><parameter>
+    <key/>
+    <name>ClearDataStore</name>
+    <type>xsd:string</type>
+    <isRequired>false</isRequired>
+    <constraint/>
+    <description/>
+    <additionalMetadata/>
   </parameter><param_references><reference attribute_category="Sender" attribute_id="/attrId::xsrfProtection" attribute_uilabel="" param_key="csrf"/><reference attribute_category="Sender" attribute_id="/attrId::userRole" attribute_uilabel="" param_key="httpsUR"/><reference attribute_category="Sender" attribute_id="/attrId::urlPath" attribute_uilabel="" param_key="connectionAddress"/></param_references></parameters>

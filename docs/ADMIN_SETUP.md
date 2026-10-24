@@ -1,6 +1,6 @@
 # B2B Archiving (CMIS File Gateway) – Admin Setup Guide
 
-As of 2026-10-21
+As of 2026-10-24
 
 ## Overview
 
@@ -83,7 +83,7 @@ Deploy Step 2 first, then Step 1, because iFlow 1 hands uploads to iFlow 2 via P
 3. Deploy `B2B_Archive_2_File_Step_2`, then `B2B_Archive_2_File_Step_1`. Leave the ProcessDirect address `/archive/2/smb` identical in both.
 4. In **Monitor → Manage Integration Content**, copy the endpoint of `B2B_Archive_2_File_Step_1`. It looks like `https://<tenant>.it-cpi<xxx>-rt.cfapps.<region>.hana.ondemand.com/http/archive/2/smb`.
 
-Files land as `<partner>/OUT/<messageType>_<ICN>.edi` for inbound and `<partner>/IN/<messageType>_<ICN>.edi` for outbound interchanges. iFlow 1 keeps folder and document metadata in a Data Store for at most 30 days; the content itself exists only on the file server. Every GET request without a query string (e.g. the first call of an archiving run) clears this Data Store, so each run starts with an empty repository. This is intended.
+Files land as `<partner>/OUT/<messageType>_<ICN>.edi` for inbound and `<partner>/IN/<messageType>_<ICN>.edi` for outbound interchanges. iFlow 1 keeps folder and document metadata in a Data Store for at most 30 days; the content itself exists only on the file server. Every GET request without a query string (e.g. the first call of an archiving run) clears this Data Store, so each run starts with an empty repository. This is intended. To keep the Data Store, set the externalized parameter `ClearDataStore` of `B2B_Archive_2_File_Step_1` to `false`.
 
 ## Step 3 – BTP destination
 
@@ -168,9 +168,10 @@ The installation-specific values are externalized: maintain them under **Configu
 | HTTPS sender | User role | `httpsUR` | `Oauth2.Send` (must match service key 1a) |
 | HTTPS sender | CSRF protection | `csrf` | off |
 | Content modifier "Set RepositoryId" | Default repository id (exchange property `RepositoryId`) | `RepositoryId` | `CMISFileGateway` |
+| Content modifier "Set RepositoryId" | Clear the Data Store on GET without query string (exchange property `ClearDataStore`, `true`/`false`) | `ClearDataStore` | `true` |
 | Integration flow | Allowed headers | – | `objectId\|repositoryId\|Content-Type\|Content-Length\|FileName` |
 | Write to DS | Visibility / retention | – | `local` / 30 days |
-| Delete DS | Clears the whole Data Store | – | on every GET without query string |
+| Delete DS | Clears the whole Data Store | – | on every GET without query string, if `ClearDataStore` = `true` |
 | ProcessDirect receiver | Address | – | `/archive/2/smb` |
 
 **`B2B_Archive_2_File_Step_2`**
