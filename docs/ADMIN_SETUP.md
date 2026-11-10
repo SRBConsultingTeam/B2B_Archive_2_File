@@ -1,6 +1,6 @@
 # B2B Archiving (CMIS File Gateway) – Admin Setup Guide
 
-As of 2026-10-24
+As of 2026-11-06
 
 ## Overview
 
@@ -18,7 +18,7 @@ TPM archiving job
 │   B2B_Archive_2_File_Step_1                       │
 │   Data Store, 30 days                             │
 │     │                                             │
-│     │ ProcessDirect                               │
+│     │ JMS queue archive2smb (asynchronous)        │
 │     ▼                                             │
 │ iFlow 2: file writer                              │
 │   B2B_Archive_2_File_Step_2                       │
@@ -30,7 +30,7 @@ TPM archiving job
 File server (end user's setup)
 ```
 
-iFlow 1 answers every CMIS call itself and forwards only document uploads to iFlow 2, which writes the `.edi` file to the server.
+iFlow 1 answers every CMIS call itself and puts only document uploads into the JMS queue `archive2smb`. iFlow 2 reads the queue and writes the `.edi` file to the server; if that fails, the message stays in the queue and is retried.
 
 This guide holds all setup steps. The design of the two iFlows is described in the repository's `README.md`.
 
@@ -45,7 +45,7 @@ Menu names and field labels follow the generic SAP documentation and may differ 
 You need admin access to the BTP subaccount and the Integration Suite tenant, plus a reachable file server account.
 
 - **BTP subaccount:** Subaccount Administrator, to create service instances, service keys and destinations.
-- **Integration Suite:** Cloud Integration with the role collections `PI_Administrator` and `PI_Integration_Developer`, and the Trading Partner Management (B2B Scenarios) capability.
+- **Integration Suite:** Cloud Integration with the role collections `PI_Administrator` and `PI_Integration_Developer`, and the Trading Partner Management (B2B Scenarios) capability. The tenant must have JMS message queues available: the gateway uses one queue (`archive2smb`), which counts against the tenant's queue limit.
 - **File server:** a target folder reachable from Cloud Integration via SFTP or SMB, with write access and the right to create subfolders. Protocol, host and credentials depend on the end user's environment.
 - **Artifacts:** the integration package with `B2B_Archive_2_File_Step_1` and `B2B_Archive_2_File_Step_2` (from this Git repository or exported as a package).
 
@@ -76,14 +76,16 @@ No SAP Document Management Service instance (`api-sdm-di`) and no repository onb
 
 ## Step 2 – Import and deploy the iFlows
 
-Deploy Step 2 first, then Step 1, because iFlow 1 hands uploads to iFlow 2 via ProcessDirect.
+Deploy Step 2 first, then Step 1: iFlow 2 consumes the JMS queue `archive2smb` that iFlow 1 writes to.
 
 1. Import the package (or the two artifacts) into **Design → Integrations and APIs**. From the Git repository: zip the content of each iFlow folder (with `META-INF/` at the top level) and add it to an integration package as an integration flow, or upload it with a tool like FlashPipe.
 2. Configure the receiver channel of `B2B_Archive_2_File_Step_2` for the end user's file server: use the **SFTP** or the **SMB** adapter, depending on their environment, and create the security material that adapter needs (e.g. User Credentials, known hosts). Keep the directory `…/${property.ArchiveDirectory}` and file name `${property.ArchiveFileName}`, with overwrite and directory creation enabled. Address, credential name, directory and file name are externalized parameters (`sftpAddress`, `sftpAuthentication`, `sftpDir`, `sftpFilename`): set them under Configure. To use SMB instead, swap the adapter in the iFlow.
-3. Deploy `B2B_Archive_2_File_Step_2`, then `B2B_Archive_2_File_Step_1`. Leave the ProcessDirect address `/archive/2/smb` identical in both.
+3. Deploy `B2B_Archive_2_File_Step_2`, then `B2B_Archive_2_File_Step_1`. Leave the queue name `archive2smb` identical in both (JMS receiver of Step 1, JMS sender of Step 2).
 4. In **Monitor → Manage Integration Content**, copy the endpoint of `B2B_Archive_2_File_Step_1`. It looks like `https://<tenant>.it-cpi<xxx>-rt.cfapps.<region>.hana.ondemand.com/http/archive/2/smb`.
 
 Files land as `<partner>/OUT/<messageType>_<ICN>.edi` for inbound and `<partner>/IN/<messageType>_<ICN>.edi` for outbound interchanges. iFlow 1 keeps folder and document metadata in a Data Store for at most 30 days; the content itself exists only on the file server. Every GET request without a query string (e.g. the first call of an archiving run) clears this Data Store, so each run starts with an empty repository. This is intended. To keep the Data Store, set the externalized parameter `ClearDataStore` of `B2B_Archive_2_File_Step_1` to `false`.
+
+The hand-over to iFlow 2 is asynchronous. iFlow 1 puts the upload into the queue Base64-encoded, with `Content-Type: application/octet-stream` (the original value travels in the header `CMIS_Content-Type`), and iFlow 2 decodes it again; queue entries are therefore not readable as plain text. iFlow 1 confirms an upload to the archiving job as soon as it is in the JMS queue, so TPM shows the message as archived even if the file server is unreachable. iFlow 2 retries a failed write (after 1 minute, then with exponential backoff up to every 60 minutes) until the message expires after 30 days. Watch the queue under **Monitor → Integrations and APIs → Manage Stores → Message Queues**: from there you can retry, move or delete messages.
 
 ## Step 3 – BTP destination
 
@@ -144,14 +146,18 @@ Setup is done when a processed B2B message shows archiving status "archived" and
 - [ ] Send a test interchange through an agreement with archiving enabled.
 - [ ] Message monitor: archiving status of the message is successful.
 - [ ] Cloud Integration monitor: completed runs of `B2B_Archive_2_File_Step_1` and `B2B_Archive_2_File_Step_2`.
+- [ ] Message Queues: `archive2smb` holds no waiting or failed messages.
 - [ ] File server: file under `<target folder>/<partner>/IN` or `/OUT`.
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Archiving fails right away, no iFlow 1 runs | destination name, URL or token URL wrong, or archiving not activated | check `CloudIntegration_B2BArchive` with Check Connection; repeat Step 4 |
 | HTTP 401/403 in iFlow 1 | role of service key 1a differs from `httpsUR` of iFlow 1 | give the instance the role set in `httpsUR`, or set `httpsUR` to the role of the key |
-| iFlow 1 runs, iFlow 2 never starts | iFlow 2 not deployed or ProcessDirect address differs | deploy iFlow 2, align `/archive/2/smb` |
-| iFlow 2 fails in the receiver channel | connection, credentials or security material of the SFTP/SMB adapter | fix the adapter configuration; test it with Connectivity Test |
+| iFlow 1 runs, iFlow 2 never starts; messages pile up in `archive2smb` | iFlow 2 not deployed or queue names differ | deploy iFlow 2, align the queue name `archive2smb` in both iFlows |
+| TPM shows "archived", but the file is missing | iFlow 2 fails in the receiver channel (connection, credentials or security material of the SFTP/SMB adapter); the message waits in `archive2smb` for its next retry | fix the adapter configuration and test it with Connectivity Test; then retry the message in Message Queues or wait for the next automatic retry |
+| iFlow 2 fails in the Base64 Decoder | the message was queued by an iFlow 1 version without the Base64 encoding | delete the message in Message Queues and archive the interchange again |
+| iFlow 2 fails with "Zip content … cannot be read … UTF-8 replacement characters" | the upload was already converted to text before iFlow 2 (seen when TPM resent a previously archived interchange) | the message cannot be repaired: delete it in Message Queues and archive the interchange again, or copy the document to the file server by hand |
+| Messages in the dead-letter queue | iFlow 2 crashed the worker node twice for the same message (e.g. a very large payload) | check the payload; retry or delete it in Message Queues |
 | Download from the archive returns 404 | by design: the CMIS File Gateway stores no content | read the file from the file server |
 
 Known limit: only the CMIS Browser binding is supported, so generic CMIS clients must use it (not AtomPub).
@@ -172,7 +178,11 @@ The installation-specific values are externalized: maintain them under **Configu
 | Integration flow | Allowed headers | – | `objectId\|repositoryId\|Content-Type\|Content-Length\|FileName` |
 | Write to DS | Visibility / retention | – | `local` / 30 days |
 | Delete DS | Clears the whole Data Store | – | on every GET without query string, if `ClearDataStore` = `true` |
-| ProcessDirect receiver | Address | – | `/archive/2/smb` |
+| Content modifier "Save Content-Type" | Header `CMIS_Content-Type` = original `Content-Type`; `Content-Type` = `application/octet-stream` | – | before the Base64 Encoder and the Send step |
+| Base64 Encoder / Decoder | Body Base64-encoded for the queue, decoded again after the Send step | – | – |
+| JMS receiver | Queue name / access type | – | `archive2smb` / Exclusive |
+| JMS receiver | Expiration period / retention threshold for alerting | – | 30 days / 2 days |
+| JMS receiver | Transfer exchange properties | – | yes |
 
 **`B2B_Archive_2_File_Step_2`**
 
@@ -184,6 +194,11 @@ The installation-specific values are externalized: maintain them under **Configu
 | File receiver | File name | `sftpFilename` | `${property.ArchiveFileName}` |
 | File receiver | Proxy type | `sftpProxy` | `none` |
 | File receiver | File exists / auto create | – | `Override` / yes |
-| ProcessDirect sender | Address | – | `/archive/2/smb` |
+| JMS sender | Queue name / access type | – | `archive2smb` / Exclusive |
+| JMS sender | Number of concurrent processes | – | 1 |
+| JMS sender | Retry interval / exponential backoff / maximum retry interval | – | 1 min / yes / 60 min |
+| JMS sender | Dead-letter queue | – | on |
+| Base64 Decoder + content modifier | Body decoded; `Content-Type` restored from `CMIS_Content-Type` | – | before "Extract data" |
+| Exception subprocesses | End event | – | Error End (the message is rolled back into the queue and retried) |
 
 The parameter names start with `sftp` because the delivered receiver channel is SFTP.

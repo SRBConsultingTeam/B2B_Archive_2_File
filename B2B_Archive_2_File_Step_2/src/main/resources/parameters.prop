@@ -1,5 +1,5 @@
 #
-#Mon Oct 19 11:57:21 UTC 2026
+#Fri Nov 06 09:06:30 UTC 2026
 sftpAddress=<sftp-host>\:22
 sftpAuthentication=<credential-alias>
 sftpDir=/<target-folder>/${property.ArchiveDirectory}

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1337" height="603" viewBox="0 0 1337 603" font-family="'72 Brand', '72', Arial, Helvetica, sans-serif" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" width="1337" height="627" viewBox="0 0 1337 627" font-family="'72 Brand', '72', Arial, Helvetica, sans-serif" role="img" aria-labelledby="t d">
 <title id="t">B2B Archiving to a File Server</title>
-<desc id="d">The Trading Partner Management archiving job uses the destination CloudIntegration_B2BArchive to call iFlow 1 (CMIS File Gateway), which keeps metadata in a Data Store and hands createDocument via ProcessDirect to iFlow 2, which writes the file to the file server via SFTP or SMB.</desc>
+<desc id="d">The Trading Partner Management archiving job uses the destination CloudIntegration_B2BArchive to call iFlow 1 (CMIS File Gateway), which keeps metadata in a Data Store and hands createDocument asynchronously via the JMS queue archive2smb to iFlow 2, which writes the file to the file server via SFTP or SMB.</desc>
 <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0.5 L8,4 L0,7.5 z" fill="#475e75"/></marker><linearGradient id="num" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#2395ff"/><stop offset="1" stop-color="#0057d2"/></linearGradient></defs>
-<rect width="1337" height="603" fill="#ffffff"/>
+<rect width="1337" height="627" fill="#ffffff"/>
 <text x="24.00" y="34.00" font-size="16" font-weight="700" fill="#0070f2" text-anchor="start">B2B Archiving to a File Server</text>
 <rect x="24.00" y="56.00" width="969.30" height="523.15" rx="16" fill="#ebf8ff" stroke="#0070f2" stroke-width="1.5"/>
 <image x="42.55" y="74.55" width="37.50" height="18.55" href="data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgNDEyLjM4IDIwNCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lYXItZ3JhZGllbnQiIHgxPSIyMDYuMTkiIHgyPSIyMDYuMTkiIHkyPSIyMDQiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwMGI4ZjEiPjwvc3RvcD48c3RvcCBvZmZzZXQ9IjAuMDIiIHN0b3AtY29sb3I9IiMwMWI2ZjAiPjwvc3RvcD48c3RvcCBvZmZzZXQ9IjAuMzEiIHN0b3AtY29sb3I9IiMwZDkwZDkiPjwvc3RvcD48c3RvcCBvZmZzZXQ9IjAuNTgiIHN0b3AtY29sb3I9IiMxNzc1YzgiPjwvc3RvcD48c3RvcCBvZmZzZXQ9IjAuODIiIHN0b3AtY29sb3I9IiMxYzY1YmYiPjwvc3RvcD48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxZTVmYmIiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48dGl0bGU+U0FQX2dyYWRfUl9zY3JuX1plaWNoZW5mbMOkY2hlIDE8L3RpdGxlPjxwb2x5bGluZSBmaWxsPSJ1cmwoI2xpbmVhci1ncmFkaWVudCkiIHBvaW50cz0iMCAyMDQgMjA4LjQxIDIwNCA0MTIuMzggMCAwIDAgMCAyMDQiPjwvcG9seWxpbmU+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0NC43MywzOC4zNmwtNDAuNiwwdjk2LjUyTDE2OC42NywzOC4zM0gxMzMuNTFsLTMwLjI3LDgwLjcyQzEwMCw5OC43LDc5LDkxLjY3LDYyLjQsODYuNCw1MS40Niw4Mi44OSwzOS44NSw3Ny43Miw0MCw3MmMuMDktNC42OCw2LjIzLTksMTguMzgtOC4zOCw4LjE3LjQzLDE1LjM3LDEuMDksMjkuNzEsOGwxNC4xLTI0LjU1Qzg5LjA2LDQwLjQyLDcxLDM2LjIxLDU2LjE3LDM2LjE5aC0uMDljLTE3LjI4LDAtMzEuNjgsNS42LTQwLjYsMTQuODNBMzQuMjMsMzQuMjMsMCwwLDAsNS43Nyw3NC43QzUuNTQsODcuMTUsMTAuMTEsOTYsMTkuNzEsMTAzYzguMSw1Ljk0LDE4LjQ2LDkuNzksMjcuNiwxMi42MiwxMS4yNywzLjQ5LDIwLjQ3LDYuNTMsMjAuMzYsMTNBOS41Nyw5LjU3LDAsMCwxLDY1LDEzNWMtMi44MSwyLjktNy4xMyw0LTEzLjA5LDQuMS0xMS40OS4yNC0yMC0xLjU2LTMzLjYxLTkuNTlMNS43NywxNTQuNDJhOTMuNzcsOTMuNzcsMCwwLDAsNDYsMTIuMjJsMi4xMSwwYzE0LjI0LS4yNSwyNS43NC00LjMxLDM0LjkyLTExLjcxLjUzLS40MSwxLS44NCwxLjQ5LTEuMjhMODYuMTcsMTY0LjVIMTIzbDYuMTktMTguODJhNjcuNDYsNjcuNDYsMCwwLDAsMjEuNjgsMy40Myw2OC4zMyw2OC4zMywwLDAsMCwyMS4xNi0zLjI1bDYsMTguNjRoNjAuMTR2LTM5aDEzLjExYzMxLjcxLDAsNTAuNDYtMTYuMTUsNTAuNDYtNDMuMkMzMDEuNzQsNTIuMTksMjgzLjUyLDM4LjM2LDI0NC43MywzOC4zNlpNMTUwLjkxLDEyMWEzNi45MywzNi45MywwLDAsMS0xMy0yLjI4bDEyLjg3LTQwLjU5SDE1MWwxMi42NSw0MC43MUEzOC41LDM4LjUsMCwwLDEsMTUwLjkxLDEyMVptOTYuMi0yMy4zM2gtOC45NFY2NC45MWg4Ljk0YzExLjkzLDAsMjEuNDQsNCwyMS40NCwxNi4xNCwwLDEyLjYtOS41MSwxNi41Ny0yMS40NCwxNi41NyI+PC9wYXRoPjwvc3ZnPg=="/>
@@ -33,7 +33,7 @@
 <rect x="741.65" y="252.40" width="196.00" height="132.00" rx="12" fill="#ffffff" stroke="#0070f2" stroke-width="1.5"/>
 <text x="839.65" y="280.40" font-size="14" font-weight="700" fill="#1d2d3e" text-anchor="middle">iFlow 2</text>
 <text x="839.65" y="298.40" font-size="12" font-weight="400" fill="#1d2d3e" text-anchor="middle">B2B_Archive_2_File_Step_2</text>
-<text x="839.65" y="322.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">ProcessDirect /archive/2/smb</text>
+<text x="839.65" y="322.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">JMS queue archive2smb</text>
 <text x="839.65" y="336.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">extractData.groovy</text>
 <text x="839.65" y="350.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">unzip, derive directory</text>
 <text x="839.65" y="364.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">and file name</text>
@@ -58,12 +58,13 @@
 <text x="384.38" y="321.90" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">CMIS</text>
 <circle cx="384.38" cy="288.40" r="15" fill="url(#num)"/>
 <text x="384.38" y="293.90" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">2</text>
-<polyline points="631.65,318.40 739.65,318.40" fill="none" stroke="#475e75" stroke-width="1.5" marker-end="url(#arrow)"/>
-<rect x="637.05" y="310.40" width="97.20" height="16" rx="8" fill="#f5f6f7" stroke="#475e75" stroke-width="1.5"/>
-<text x="685.65" y="321.90" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">ProcessDirect</text>
+<polyline points="631.65,318.40 739.65,318.40" fill="none" stroke="#475e75" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<rect x="669.05" y="310.40" width="33.20" height="16" rx="8" fill="#f5f6f7" stroke="#475e75" stroke-width="1.5"/>
+<text x="685.65" y="321.90" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">JMS</text>
 <circle cx="685.65" cy="288.40" r="15" fill="url(#num)"/>
 <text x="685.65" y="293.90" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">4</text>
 <text x="685.65" y="342.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">createDocument</text>
+<text x="685.65" y="356.40" font-size="10" font-weight="400" fill="#556b82" text-anchor="middle">queue archive2smb</text>
 <polyline points="939.65,318.40 1169.30,318.40" fill="none" stroke="#475e75" stroke-width="1.5" marker-end="url(#arrow)"/>
 <rect x="974.48" y="310.40" width="78.00" height="16" rx="8" fill="#f5f6f7" stroke="#475e75" stroke-width="1.5"/>
 <text x="1013.48" y="321.90" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">SFTP / SMB</text>
@@ -71,16 +72,18 @@
 <text x="1013.48" y="293.90" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">5</text>
 <circle cx="501.65" cy="405.95" r="15" fill="url(#num)"/>
 <text x="501.65" y="411.45" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">3</text>
-<rect x="1089.30" y="428.95" width="224.00" height="150.20" rx="0" fill="#f5f6f7" stroke="#f5f6f7" stroke-width="1.5"/>
+<rect x="1089.30" y="428.95" width="224.00" height="174.20" rx="0" fill="#f5f6f7" stroke="#f5f6f7" stroke-width="1.5"/>
 <text x="1103.30" y="450.95" font-size="12" font-weight="700" fill="#1d2d3e" text-anchor="start">Legend</text>
 <polyline points="1103.30,472.95 1149.30,472.95" fill="none" stroke="#475e75" stroke-width="1.5" marker-end="url(#arrow)"/>
 <text x="1161.30" y="476.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Synchronous request–response</text>
-<polyline points="1103.30,496.95 1149.30,496.95" fill="none" stroke="#475e75" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-<text x="1161.30" y="500.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Read and write</text>
-<rect x="1109.70" y="512.95" width="33.20" height="16" rx="8" fill="#f5f6f7" stroke="#475e75" stroke-width="1.5"/>
-<text x="1126.30" y="524.45" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">SMB</text>
-<text x="1161.30" y="524.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Protocol or adapter</text>
-<circle cx="1118.30" cy="550.95" r="15" fill="url(#num)"/>
-<text x="1118.30" y="556.45" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">1</text>
-<text x="1161.30" y="554.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Step, see text</text>
+<polyline points="1103.30,496.95 1149.30,496.95" fill="none" stroke="#475e75" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+<text x="1161.30" y="500.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Asynchronous (queued)</text>
+<polyline points="1103.30,520.95 1149.30,520.95" fill="none" stroke="#475e75" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text x="1161.30" y="524.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Read and write</text>
+<rect x="1109.70" y="536.95" width="33.20" height="16" rx="8" fill="#f5f6f7" stroke="#475e75" stroke-width="1.5"/>
+<text x="1126.30" y="548.45" font-size="10" font-weight="700" fill="#475e75" text-anchor="middle">SMB</text>
+<text x="1161.30" y="548.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Protocol or adapter</text>
+<circle cx="1118.30" cy="574.95" r="15" fill="url(#num)"/>
+<text x="1118.30" y="580.45" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">1</text>
+<text x="1161.30" y="578.45" font-size="10" font-weight="400" fill="#556b82" text-anchor="start">Step, see text</text>
 </svg>

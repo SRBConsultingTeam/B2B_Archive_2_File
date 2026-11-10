@@ -17,7 +17,7 @@ Many customers simply want the documents on a file server.
 
 This repository closes that gap:
 
-![B2B Archiving to a File Server: the Trading Partner Management archiving job uses the destination CloudIntegration_B2BArchive to call iFlow 1 (CMIS File Gateway); iFlow 1 keeps metadata in a Data Store and hands createDocument via ProcessDirect to iFlow 2, which writes the file to the file server via SFTP or SMB](docs/img/b2b-archiving-architecture.svg)
+![B2B Archiving to a File Server: the Trading Partner Management archiving job uses the destination CloudIntegration_B2BArchive to call iFlow 1 (CMIS File Gateway); iFlow 1 keeps metadata in a Data Store and hands createDocument via the JMS queue archive2smb to iFlow 2, which writes the file to the file server via SFTP or SMB](docs/img/b2b-archiving-architecture.svg)
 
 1. The archiving job of Trading Partner Management (B2B Scenarios, agreement with archiving) uses the
    destination `CloudIntegration_B2BArchive`, which holds the connection data: the URL of iFlow 1 and the
@@ -25,7 +25,7 @@ This repository closes that gap:
 2. With it, the job calls iFlow 1 with the CMIS Browser binding (HTTPS, OAuth2).
 3. iFlow 1 answers the CMIS dialog itself and keeps the repository metadata (folders, documents, types)
    in a Data Store.
-4. Only `createDocument` is handed over synchronously via ProcessDirect to iFlow 2.
+4. Only `createDocument` is handed over to iFlow 2, asynchronously via the JMS queue `archive2smb`.
 5. iFlow 2 unpacks the document and writes it to the file server via SFTP or SMB.
 
 - The archiving job believes it talks to a CMIS repository.
@@ -70,18 +70,36 @@ server only. Content download (`cmisselector=content`) is therefore not supporte
   - `createDocument` → handed over to iFlow 2,
   - `createFolder` / `createType` → Data Store only,
   - everything else → answered directly by the script.
-- **ProcessDirect receiver:** `/archive/2/smb`.
+- **Content modifier "Save Content-Type" + Base64 Encoder:** copies the original
+  `Content-Type` (`multipart/form-data; boundary=…`) into the header `CMIS_Content-Type`, sets
+  `Content-Type` to `application/octet-stream` and Base64-encodes the body. The queued message is
+  therefore plain text that no adapter parses or converts: with the multipart `Content-Type`, the
+  JMS sender of iFlow 2 would split the upload into body and attachments.
+- **Send step "archive2smb" + JMS receiver:** puts the upload into the JMS queue `archive2smb`
+  (access type *Exclusive*, expiration 30 days, exchange properties transferred). The CMIS answer
+  (`201`) goes back to the archiving job as soon as the message is in the queue, not after the file
+  is written. After the Send, a Base64 Decoder and a content modifier restore the original body
+  and `Content-Type` for the rest of iFlow 1.
 
 ### 3.2 `B2B_Archive_2_File_Step_2` – write to file server (step 2)
 
-- **Sender:** ProcessDirect `/archive/2/smb` (called synchronously by iFlow 1, so a
-  file-transfer error is returned to the archiving job).
+- **Sender:** JMS queue `archive2smb` (access type *Exclusive*, 1 concurrent process, retry after
+  1 minute with exponential backoff up to 60 minutes, dead-letter queue on). The exception
+  subprocesses end with an *Error End* event, so a failed write rolls the message back into the
+  queue and it is retried until it expires (30 days). A file-transfer error is therefore **not**
+  returned to the archiving job: TPM shows the message as archived, and the open message is
+  visible in **Monitor → Manage Stores → Message Queues**.
+- **Base64 Decoder + content modifier:** decode the body and restore `Content-Type` from
+  `CMIS_Content-Type`, so the script gets the upload exactly as iFlow 1 received it.
 - **Script `extractData.groovy`:**
-  - parses the CMIS `multipart/form-data` upload,
+  - parses the CMIS `multipart/form-data` upload (from the body; if a runtime has already split
+    the multipart, from the message attachments),
   - turns the `propertyId[n]` / `propertyValue[n]` pairs into exchange properties
     (`b2b:interchangeDirection`, `b2b:senderTradingPartnerName`, `b2b:senderMessageType`,
     `b2b:senderInterchangeControlNumber` and the `receiver…` equivalents),
-  - unzips the content (the document; a `.json` metadata file is ignored),
+  - unzips the content (the document; a `.json` metadata file is ignored); if the zip cannot be
+    read, the error names the target file and counts UTF-8 replacement characters, a sign that the
+    binary content was converted to text before it reached the iFlow,
   - derives the target:
     - direction `IN`: directory `<senderTradingPartnerName>/OUT`,
       file `<senderMessageType>_<senderInterchangeControlNumber>.edi`
